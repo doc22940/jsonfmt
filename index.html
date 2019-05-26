@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en-US">
+	<head>
+		<meta charset="UTF-8"/>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+		<meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+		<title>JSON Format - Online JSON formatter</title>
+		<meta name="description" content="Online JSON formatter."/>
+		<meta name="viewport" content="width=device-width, initial-scale=1"/>
+		<meta name="keywords" content="json,formatter,developers,dev"/>
+		<style>
+			body, button {
+				margin: 0;
+				font-size: 16px;
+				font-family: Consolas, "Andale Mono WT", "Andale Mono",
+					"Lucida Console", "Lucida Sans Typewriter",
+					"DejaVu Sans Mono", "Bitstream Vera Sans Mono",
+					"Liberation Mono", "Nimbus Mono L", Monaco, "Courier New",
+					Courier, monospace;
+			}
+
+			p {
+				box-sizing: border-box;
+				padding: 20px;
+				position: fixed;
+				left: 0;
+				width: 100%;
+				top: 0;
+				bottom: 59px;
+				white-space: pre-wrap;
+				margin: 0;
+				outline: 0;
+				overflow: auto;
+			}
+
+			p:empty::before {
+				color: grey;
+				content: "Paste JSON here...";
+			}
+
+			button {
+				position: fixed;
+				bottom: 0;
+				width: 100%;
+				background: #CCC;
+				padding: 20px;
+				border: 0;
+				outline: 0;
+				font-weight: bold;
+				cursor: pointer;
+			}
+
+			button:active {
+				background: #999;
+			}
+
+			.number  { color: purple; }
+			.key     { color: green; }
+			.string  { color: green; }
+			.boolean { color: blue; }
+			.null    { color: grey; }
+		</style>
+	</head>
+	<body>
+		<p id="text" contenteditable></p>
+		<button onclick="format()">Format</button>
+		<script>
+			function syntaxHighlight(json) {
+				json = json.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+				return json.replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g, function (match) {
+					var cls = 'number';
+					if (/^"/.test(match)) {
+						if (/:$/.test(match)) {
+							cls = 'key';
+						} else {
+							cls = 'string';
+						}
+					} else if (/true|false/.test(match)) {
+						cls = 'boolean';
+					} else if (/null/.test(match)) {
+						cls = 'null';
+					}
+					return '<span class="' + cls + '">' + match + '</span>';
+				});
+			}
+			
+			function format() {
+				try {
+					var data = JSON.parse(text.textContent || text.innerText);
+					var hash = '#' + encodeURIComponent(JSON.stringify(data));
+					if (hash !== window.location.hash) {
+						window.location.hash = hash;
+					} else {
+						text.innerHTML = syntaxHighlight(JSON.stringify(data, null, 2));
+					}
+				} catch (e) {}
+			}
+
+			window.onhashchange = function() {
+				if (window.location.hash.length > 1) {
+					var json = window.location.hash.substr(1);
+					try {
+						var data = JSON.parse(decodeURIComponent(json));
+						text.innerHTML = syntaxHighlight(JSON.stringify(data, null, 2));
+					} catch (e) {
+						text.innerHTML = json;
+					}
+				}
+			};
+
+			if (window.location.hash.length > 1) {
+				text.innerHTML = decodeURIComponent(window.location.hash.substr(1));
+				window.onhashchange();
+			}
+		</script>
+	</body>
+</html>
